@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 using System.Threading;
+using System.IO;
 
 class start
 {
@@ -12,7 +13,9 @@ class start
         string end = "loop";
         do
         {
-            string[] menu = System.IO.File.ReadAllLines(@"D:\GitHub\Snake2.0\Snake\mainmenu.txt");
+            string menu1 = @"mainmenu.txt";
+            string menutxt = Path.GetFullPath(menu1);
+            string[] menu = System.IO.File.ReadAllLines(menutxt);
             foreach (string line in menu)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
@@ -35,7 +38,9 @@ class start
                 while (insloop)
                 {
                     Console.Clear();
-                    string[] help = System.IO.File.ReadAllLines(@"D:\GitHub\Snake2.0\Snake\helppage.txt");
+                    string help1 = @"helppage.txt";
+                    string helptxt = Path.GetFullPath(help1);
+                    string[] help = System.IO.File.ReadAllLines(helptxt);
                     foreach (string line in help)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
@@ -67,6 +72,9 @@ class gamevictory
 {
     public void gamevictoryscr(int userpoints)
     {
+        string score = @"score.txt";
+        string scoretxt = Path.GetFullPath(score);
+
         Console.SetCursorPosition(40, 6);
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("Congrats! You've won the game!");
@@ -79,7 +87,8 @@ class gamevictory
         string nametext = Console.ReadLine();
 
         using (System.IO.StreamWriter file =
-                new System.IO.StreamWriter(@"D:\GitHub\Snake2.0\Snake\score.txt", true))
+
+                new System.IO.StreamWriter(scoretxt, true))
         {
             file.WriteLine(nametext + "(Won)" + " - " + userpoints.ToString()); // indicates that the user won the game
         }
@@ -98,6 +107,9 @@ class gameover
 {
     public void gameoverscr(int userpoints)
     {
+        string score = @"score.txt";
+        string scoretxt = Path.GetFullPath(score);
+
         Console.SetCursorPosition(50, 6);
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine("Game over!");
@@ -114,7 +126,7 @@ class gameover
         string nametext = Console.ReadLine();
 
         using (System.IO.StreamWriter file =
-                new System.IO.StreamWriter(@"D:\GitHub\Snake2.0\Snake\score.txt", true))
+                new System.IO.StreamWriter(scoretxt, true))
         {
             file.WriteLine(nametext + " - " + userpoints.ToString());
         }
@@ -152,11 +164,26 @@ namespace Snake
             start start = new start();
             start.mainmenu();
 
-            System.Media.SoundPlayer move = new System.Media.SoundPlayer(@"D:\GitHub\Snake2.0\Snake\sound\move.wav");
-            System.Media.SoundPlayer eat = new System.Media.SoundPlayer(@"D:\GitHub\Snake2.0\Snake\sound\eat.wav");
-            System.Media.SoundPlayer gameover = new System.Media.SoundPlayer(@"D:\GitHub\Snake2.0\Snake\sound\gameover.wav");
-            System.Media.SoundPlayer crash = new System.Media.SoundPlayer(@"D:\GitHub\Snake2.0\Snake\sound\crash.wav");
-            System.Media.SoundPlayer powerupsound = new System.Media.SoundPlayer(@"D:\GitHub\Snake2.0\Snake\sound\powerup.wav");
+            var move = new System.Media.SoundPlayer();
+            string move1 = @"move.wav";
+            string movewav = Path.GetFullPath(move1);
+            move.SoundLocation = movewav;
+            System.Media.SoundPlayer eat = new System.Media.SoundPlayer();
+            string eat1 = @"eat.wav";
+            string eatwav = Path.GetFullPath(eat1);
+            eat.SoundLocation = eatwav;
+            System.Media.SoundPlayer gameover = new System.Media.SoundPlayer();
+            string gameover1 = @"gameover.wav";
+            string gameoverwav = Path.GetFullPath(gameover1);
+            gameover.SoundLocation = gameoverwav;
+            System.Media.SoundPlayer crash = new System.Media.SoundPlayer();
+            string crash1 = @"crash.wav";
+            string crashwav = Path.GetFullPath(crash1);
+            crash.SoundLocation = crashwav;
+            System.Media.SoundPlayer powerupsound = new System.Media.SoundPlayer();
+            string powerup1 = @"powerup.wav";
+            string powerupwav = Path.GetFullPath(powerup1);
+            powerupsound.SoundLocation = powerupwav;
             byte right = 0;
             byte left = 1;
             byte down = 2;
@@ -179,6 +206,11 @@ namespace Snake
                 snakeElements.Enqueue(new Position(0, i));
             }
 
+            List<Position> Scoreboard = new List<Position>() // scoreboard boundaries
+            {
+                    new Position(1, 20)
+            };
+
             // Spawn the first 5 obstacles in the game 
 
             List<Position> obstacles = new List<Position>() //spawn the first obstacles
@@ -197,9 +229,9 @@ namespace Snake
 
             foreach (Position obstacle in obstacles) //write obstacle as "=" on declared position
             {
-                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.ForegroundColor = ConsoleColor.DarkCyan;
                 Console.SetCursorPosition(obstacle.y, obstacle.x);
-                Console.Write("=");
+                Console.Write("▒");
             }
 
             List<Position> powerups = new List<Position>()
@@ -210,9 +242,9 @@ namespace Snake
 
             foreach (Position powerup in powerups) // powerup is created
             {
-               Console.ForegroundColor = ConsoleColor.Green;
-               Console.SetCursorPosition(powerup.y, powerup.x);
-               Console.Write("+");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.SetCursorPosition(powerup.y, powerup.x);
+                Console.Write("+");
             }
 
             Position food;
@@ -221,7 +253,7 @@ namespace Snake
                 food = new Position(randomNumbersGenerator.Next(0, Console.WindowHeight),
                     randomNumbersGenerator.Next(0, Console.WindowWidth));
             }
-            while (snakeElements.Contains(food) || obstacles.Contains(food)); //to make sure that food doesnt spawn on both snake and obstacles
+            while (snakeElements.Contains(food) || obstacles.Contains(food) || Scoreboard.Contains(food)); //to make sure that food doesnt spawn on both snake, obstacles and scoreboard
 
 
 
@@ -241,7 +273,7 @@ namespace Snake
 
                 if (Console.KeyAvailable)
                 {
-                    ConsoleKeyInfo userInput = Console.ReadKey();
+                    ConsoleKeyInfo userInput = Console.ReadKey(true);
                     if (userInput.Key == ConsoleKey.LeftArrow)
                     {
                         if (direction != right) direction = left;
@@ -274,15 +306,49 @@ namespace Snake
                                                      snakeHead.y + nextDirection.y); //snakehead will move to the same direction to which the user inputted
 
                 // make sure the snake wont be able to go outside the screen
-                if (snakeNewHead.y < 0) snakeNewHead.y = Console.WindowWidth - 1;
+                if (snakeNewHead.y < 0)
+                {
+                    if (snakeNewHead.x == 0)
+                    {
+                        snakeNewHead.y = Console.WindowWidth - 21;
+                    }
+
+                    else
+                    {
+                        snakeNewHead.y = Console.WindowWidth - 1;
+                    }
+                }
                 if (snakeNewHead.x < 0) snakeNewHead.x = Console.WindowHeight - 1;
-                if (snakeNewHead.x >= Console.WindowHeight) snakeNewHead.x = 0;
+                if (snakeNewHead.x >= Console.WindowHeight)
+                {
+                    if (snakeNewHead.y >= 20)
+                    {
+                        snakeNewHead.x = 1;
+                    }
+
+                    else
+                    {
+                        snakeNewHead.x = 0;
+                    }
+                }
                 if (snakeNewHead.y >= Console.WindowWidth) snakeNewHead.y = 0;
+                if (snakeNewHead.y >= Console.WindowWidth - 20 && snakeNewHead.x < 1) //scoreboard boundaries
+                {
+                    if (snakeNewHead.x == 1)
+                    {
+                        snakeNewHead.y = 0;
+                    }
+
+                    else
+                    {
+                        snakeNewHead.x = Console.WindowHeight - 1;
+                    }
+                }
 
                 foreach (Position position in snakeElements) //writes the body of the snake as "*" on declared position
                 {
                     Console.SetCursorPosition(position.y, position.x);
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
                     Console.Write("*");
                 }
 
@@ -316,25 +382,8 @@ namespace Snake
 
                 if (snakeElements.Contains(snakeNewHead) || powerups.Contains(snakeNewHead))
                 {
-                    
-                    lives += 1;
                     powerupsound.Play();
-                    
-                    
-                    //Position powerup = new Position(); // randomize the position of the obstacles
-                    //do
-                    //{
-                    //    powerup = new Position(randomNumbersGenerator.Next(0, Console.WindowHeight),
-                    //        randomNumbersGenerator.Next(0, Console.WindowWidth));
-                    //}
-                    //while (snakeElements.Contains(powerup) ||
-                    //    powerups.Contains(powerup) ||
-                    //    (food.x != powerup.x && food.y != powerup.y));
-                    //powerups.Add(powerup);
-                    //Console.SetCursorPosition(powerup.y, powerup.x);
-                    //Console.ForegroundColor = ConsoleColor.Green;
-                    //Console.Write("+");
-                    
+                    lives += 1;
                 }
 
 
@@ -362,7 +411,7 @@ namespace Snake
                 if (direction == left) Console.Write("<");
                 if (direction == up) Console.Write("^");
                 if (direction == down) Console.Write("v");
-  
+
 
                 //What will happened if the snake got fed:
                 if (snakeNewHead.y == food.y && snakeNewHead.x == food.x)
@@ -388,11 +437,11 @@ namespace Snake
                     }
                     while (snakeElements.Contains(obstacle) ||
                         obstacles.Contains(obstacle) ||
-                        (food.x != obstacle.x && food.y != obstacle.y));
+                        (food.x != obstacle.x && food.y != obstacle.y) || Scoreboard.Contains(food)); //
                     obstacles.Add(obstacle);
                     Console.SetCursorPosition(obstacle.y, obstacle.x);
-                    Console.ForegroundColor = ConsoleColor.Cyan;
-                    Console.Write("=");
+                    Console.ForegroundColor = ConsoleColor.DarkCyan;
+                    Console.Write("▒");
                 }
                 else
                 {
@@ -415,19 +464,18 @@ namespace Snake
                         food = new Position(randomNumbersGenerator.Next(0, Console.WindowHeight),
                             randomNumbersGenerator.Next(0, Console.WindowWidth));
                     }
-                    while (snakeElements.Contains(food) || obstacles.Contains(food));
+                    while (snakeElements.Contains(food) || obstacles.Contains(food) || Scoreboard.Contains(food));
                     lastFoodTime = Environment.TickCount;
                 }
 
                 Console.SetCursorPosition(food.y, food.x);
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("@");
-
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.Write("♥♥");
                 sleepTime -= 0.01;
 
                 Thread.Sleep((int)sleepTime);
 
-                
+
 
             }
         }
